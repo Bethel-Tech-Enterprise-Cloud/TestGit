@@ -21,6 +21,25 @@ closepath
 0.8 setgray  % Set fill color to gray
 fill
 
+%!PS-Adobe-3.0
+%%BoundingBox: 0 0 200 200
+
+% Draw a gradient
+200 {
+    /y exch def
+    y 0 200 0 moveto
+    200 y lineto
+    y 200 200 lineto
+    y 200 0 lineto
+    closepath
+    (1.0 0.0 0.0) setrgbcolor  % Red
+    fill
+    1 setgray
+} repeat
+
+showpage
+
+
 % Add some text
 50 160 moveto
 (Hello, PostScript!) show
