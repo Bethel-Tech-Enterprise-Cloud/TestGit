@@ -121,39 +121,7 @@ ROLLOUT_SCRIPTS
     RETURN
 
 
-.#######################################################################
-SET_RUN_CONFIG
 
-    FILL " " IN CONFIG_LIST
-
-    IF (ENABLE_TEST)
-        PACK CFG_RUNMODE WITH "T"
-    ELSE
-        PACK CFG_RUNMODE WITH "P"
-    ENDIF
-
-.Let the biz process determine the status of the file
-    PACK CFG_FILE_STATUS WITH FILE_STAT_UNKNOWN
-
-    FILL " " IN CFG_FILLER
-
-    PACK VAL_OPT WITH CONFIG_LIST
-
-    CALL UTIL_WRITE_VALID USING "155":
-                                VC_RUNMODE:
-                                "LDH834 RUN CONFIG":
-                                VAL_OPT
-    RETURN
-
-
-.# =================================================================== #
-.# Subroutines Includes
-.# =================================================================== #
-    INC VALID.IO
-    INC UTIL_COMMON.SR
-    INC UTIL_SYSTEM.SR
-    INC UTIL_TEST.SR
-    INC UTIL_VALID.SR
 
 .# =================================================================== #
 .# End of Program
