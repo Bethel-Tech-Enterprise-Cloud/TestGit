@@ -1,0 +1,160 @@
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++    Program name   :  ELG7034.PS
++    Description    :  CUS - EXECUTES ROLLOUTS
++    apsjm 07/26/2004 A0401091 - ROLLOUT FOR DHH 834 FILE
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+. ----------------------------
+. Required Program Includes
+. ----------------------------
+    INC VALID.RL
+    INC UTIL_COMMON.CB
+    INC LDH_834_LIB.CB
+
+.# =================================================================== #
+.# Scheduler Parameters
+.# =================================================================== #
+
+PARAM_LIST          LIST WITH NAMES
+PARAM_TEST          CHAR    4
+                    LISTEND
+
+.# =================================================================== #
+.# Program Variables
+.# =================================================================== #
+TIMESTAMP           CHAR    14
+CURRDATE            CHAR    8
+
+.# =================================================================== #
+.# Debugging Configuration
+.# =================================================================== #
+
+ENABLE_TEST         NUM     1
+TEST_CONFIG         LIST
+TEST_SKIP_CLEANUP   NUM     "1"     .Skip delete of SENT from outbound
+                    LISTEND
+
+.# =================================================================== #
+.# Begin Program
+.# =================================================================== #
+.Manual and Autosys
+    CALL RUN_NOW
+    CHAIN C_NEXT    ...go to next program (usually the Menu)
+
+.Impact Scheduler Hook
+    INC SCHED_NP.SR     ...for jobs that don't use the print system
+
+
+.#######################################################################
+RUN_NOW
++ Configure runtime settings
+
+.Save stack size at program start
+    RETCOUNT ORIG_RETURN
+
+.Set applicable traps
+    CALL UTIL_SET_NORMAL_TRAPS
+
+    MOVE "Get/Decrypt DHH 834" TO C_OPER
+    MOVE "ELG7034" TO C_PROG
+    MOVE BLANKS TO C_LABEL
+    MOVE BLANKS TO C_FILE
+    MOVE BLANKS TO C_KEYS
+    MOVE "MENU" TO C_NEXT
+
+.Check if the program was called from the command line
+    IF (C_CMDPAR)
+        CALL CMD_START USING C_PROG
+    ELSE
+        CALL X_BLANK_SCREEN
+    ENDIF
+
+.Configure test options based on file mode. Default is Production
+    CALL UTIL_SET_TESTMODE USING PARAM_TEST:  ...scheduler param
+                                 ENABLE_TEST:  ...test toggle
+                                 TEST_CONFIG  ...test settings list
+
+.Set up run mode or build SCH record
+    CALL SCHED_PICK
+
+    SWITCH RUN_MODE
+        CASE "N" | "B"
+            CALL MAIN_PROCESS
+        DEFAULT
+    ENDSWITCH
+
+    CALL NORMAL_EOJ
+    RETURN
+
+
+.#######################################################################
+MAIN_PROCESS
+    DEBUG
+    CALL INITIALIZE
+    CALL ROLLOUT_SCRIPTS
+    CALL SET_RUN_CONFIG
+    RETURN
+
+
+.#######################################################################
+INITIALIZE
+.Get run date
+    CLOCK TIMESTAMP INTO CURRDATE
+
+    RETURN
+
+
+.#######################################################################
+ROLLOUT_SCRIPTS
+    IF NOT (TEST_SKIP_CLEANUP)
+        CALL UTIL_ROLLOUT_SCRIPT USING "elg7033.ftp","elg7033.ftp failed. See log."
+    ENDIF
+
+    PACK SCRATCH WITH "elg7034.ftp"
+    IF (ENABLE_TEST)
+        PACK SCRATCH WITH SCRATCH," --test"
+    ELSE
+        PACK SCRATCH WITH SCRATCH," --prod"
+    ENDIF
+    CALL UTIL_ROLLOUT_SCRIPT USING SCRATCH," failed. See log."
+
+    RETURN
+
+
+.#######################################################################
+SET_RUN_CONFIG
+
+    FILL " " IN CONFIG_LIST
+
+    IF (ENABLE_TEST)
+        PACK CFG_RUNMODE WITH "T"
+    ELSE
+        PACK CFG_RUNMODE WITH "P"
+    ENDIF
+
+.Let the biz process determine the status of the file
+    PACK CFG_FILE_STATUS WITH FILE_STAT_UNKNOWN
+
+    FILL " " IN CFG_FILLER
+
+    PACK VAL_OPT WITH CONFIG_LIST
+
+    CALL UTIL_WRITE_VALID USING "155":
+                                VC_RUNMODE:
+                                "LDH834 RUN CONFIG":
+                                VAL_OPT
+    RETURN
+
+
+.# =================================================================== #
+.# Subroutines Includes
+.# =================================================================== #
+    INC VALID.IO
+    INC UTIL_COMMON.SR
+    INC UTIL_SYSTEM.SR
+    INC UTIL_TEST.SR
+    INC UTIL_VALID.SR
+
+.# =================================================================== #
+.# End of Program
+.# =================================================================== #
