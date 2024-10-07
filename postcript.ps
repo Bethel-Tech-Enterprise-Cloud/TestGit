@@ -21,6 +21,26 @@ closepath
 0.8 setgray  % Set fill color to gray
 fill
 
+%!PS-Adobe-3.0
+%%BoundingBox: 0 0 300 200
+
+% First text
+/Helvetica findfont
+20 scalefont
+setfont
+100 150 moveto
+(Hello, World!) show
+
+% Second text in a different font
+/Times-Roman findfont
+30 scalefont
+setfont
+100 100 moveto
+(Welcome to PostScript!) show
+
+showpage
+
+
 % Add some text
 50 160 moveto
 (Hello, PostScript!) show
