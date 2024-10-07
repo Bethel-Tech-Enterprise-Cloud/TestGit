@@ -2,3 +2,5 @@
 *.ps linguist-language=js
 *.ps linguist-detectable
 *.ps diff
+*.ps working-tree-encoding=UTF-16LE-BOM
+*.ps text
